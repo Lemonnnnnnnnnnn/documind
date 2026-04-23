@@ -4,7 +4,12 @@ import shlex
 import subprocess
 import textwrap
 
+import pytest
+
 from tests.conftest import ROOT
+
+
+pytestmark = pytest.mark.skipif(os.name == "nt", reason="install.sh is validated on macOS release jobs")
 
 
 def _write_executable(path: Path, content: str) -> None:
