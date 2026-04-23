@@ -2,7 +2,7 @@
 
 set -eu
 
-RELEASE_BASE_URL="${DOCUMIND_RELEASE_BASE_URL:-https://github.com/crow/documind/releases/latest/download}"
+RELEASE_BASE_URL="${DOCUMIND_RELEASE_BASE_URL:-https://github.com/Lemonnnnnnnnnnn/documind/releases/latest/download}"
 DOWNLOAD_URL="${RELEASE_BASE_URL}/documind-macos-arm64"
 INSTALL_DIR="${HOME}/.local/bin"
 INSTALL_PATH="${INSTALL_DIR}/documind"

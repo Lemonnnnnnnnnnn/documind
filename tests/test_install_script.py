@@ -107,7 +107,7 @@ def test_install_script_installs_documind_to_user_local_bin(tmp_path):
     assert f"Add {home_dir / '.local' / 'bin'} to PATH" in result.stdout
     assert (
         curl_log.read_text().strip()
-        == "https://github.com/crow/documind/releases/latest/download/documind-macos-arm64"
+        == "https://github.com/Lemonnnnnnnnnnn/documind/releases/latest/download/documind-macos-arm64"
     )
 
 

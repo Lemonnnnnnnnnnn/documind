@@ -18,7 +18,7 @@
 ### Binary install for macOS arm64
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/crow/documind/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/Lemonnnnnnnnnnn/documind/main/install.sh | sh
 ```
 
 The installer downloads the latest macOS arm64 binary from GitHub Releases into `~/.local/bin/documind`.
@@ -123,16 +123,24 @@ Cross-platform builds are intentionally rejected. Build each binary on its nativ
 
 ## Release Process
 
-Public binaries are distributed through GitHub Releases:
+Public binaries are distributed through GitHub Releases in `Lemonnnnnnnnnnn/documind`:
 
 - `documind-macos-arm64`
 - `documind-windows-x64.exe`
 
-Recommended release flow:
+Automated release flow:
 
-1. Build on each supported host.
-2. Run a smoke test against `example/sample.docx`.
-3. Upload the binaries as GitHub release assets.
+1. Push a tag such as `v0.1.0`.
+2. GitHub Actions builds native binaries on macOS arm64 and Windows x64.
+3. The workflow smoke-tests each binary against `example/sample.docx`.
+4. The workflow publishes both artifacts to the GitHub Release for that tag.
+
+Maintainer command:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
 
 Smoke test examples:
 
@@ -148,7 +156,7 @@ Smoke test examples:
 
 The install script reads binaries from:
 
-- `https://github.com/crow/documind/releases/latest/download`
+- `https://github.com/Lemonnnnnnnnnnn/documind/releases/latest/download`
 
 You can override that base URL when testing mirrors or forks:
 

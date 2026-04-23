@@ -18,7 +18,7 @@
 ### macOS arm64 二进制安装
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/crow/documind/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/Lemonnnnnnnnnnn/documind/main/install.sh | sh
 ```
 
 安装脚本会从 GitHub Releases 下载最新的 macOS arm64 二进制，并放到 `~/.local/bin/documind`。
@@ -123,16 +123,24 @@ uv run python scripts/build_binary.py --clean
 
 ## 发布流程
 
-公开二进制通过 GitHub Releases 分发：
+公开二进制通过 `Lemonnnnnnnnnnn/documind` 的 GitHub Releases 分发：
 
 - `documind-macos-arm64`
 - `documind-windows-x64.exe`
 
-建议发布流程：
+自动发布流程：
 
-1. 在每个支持的平台上本地构建。
-2. 使用 `example/sample.docx` 做 smoke test。
-3. 将产物上传为 GitHub release assets。
+1. 推送形如 `v0.1.0` 的 tag。
+2. GitHub Actions 在 macOS arm64 与 Windows x64 上分别构建原生二进制。
+3. 工作流会使用 `example/sample.docx` 对每个二进制执行 smoke test。
+4. 工作流会把两个产物上传到该 tag 对应的 GitHub Release。
+
+维护者发布命令：
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
 
 Smoke test 示例：
 
@@ -148,7 +156,7 @@ Smoke test 示例：
 
 安装脚本默认从以下地址读取二进制：
 
-- `https://github.com/crow/documind/releases/latest/download`
+- `https://github.com/Lemonnnnnnnnnnn/documind/releases/latest/download`
 
 如需在镜像或 fork 上验证，可以覆盖：
 
