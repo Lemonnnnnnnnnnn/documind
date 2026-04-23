@@ -1,7 +1,6 @@
 import importlib.util
-import os
 from pathlib import Path
-import stat
+import subprocess
 import sys
 from types import SimpleNamespace
 
@@ -138,9 +137,17 @@ def test_build_script_bootstraps_src_path_for_direct_execution(monkeypatch):
     assert callable(module.main)
 
 
-def test_build_script_is_executable():
-    mode = os.stat(ROOT / "scripts" / "build_binary.py").st_mode
-    assert mode & stat.S_IXUSR
+def test_build_script_is_executable_in_git_index():
+    result = subprocess.run(
+        ["git", "ls-files", "-s", "--", "scripts/build_binary.py"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.split()[0] == "100755"
 
 
 def test_build_script_main_runs_pyinstaller_and_returns_exit_code(monkeypatch, tmp_path):
