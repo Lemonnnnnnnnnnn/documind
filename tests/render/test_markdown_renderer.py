@@ -63,6 +63,30 @@ def test_renders_inline_styles_images_and_simple_table():
     assert "| Term | Meaning |" in output
 
 
+def test_renders_frontmatter_with_escaped_quotes_backslashes_and_unicode():
+    chunk = Chunk(
+        chunk_id='chunk-"1"',
+        title='He said "Hello" \\ path',
+        level=1,
+        source_path=Path("演示.docx"),
+        output_name='nested/"quoted"/index.md',
+        relative_dir="nested",
+        parent_path='parent/"root"',
+        breadcrumbs=['Root "A"', "子路径 \\ docs"],
+        blocks=[],
+    )
+
+    output = MarkdownRenderer().render_chunk(chunk)
+
+    assert 'title: "He said \\"Hello\\" \\\\ path"' in output
+    assert 'chunk_id: "chunk-\\"1\\""' in output
+    assert 'source_doc: "演示.docx"' in output
+    assert 'path: "nested/\\"quoted\\"/index.md"' in output
+    assert 'parent_path: "parent/\\"root\\""' in output
+    assert '  - "Root \\"A\\""' in output
+    assert '  - "子路径 \\\\ docs"' in output
+
+
 def test_renders_soft_breaks_inside_paragraph_runs():
     chunk = Chunk(
         chunk_id="chunk-1",
