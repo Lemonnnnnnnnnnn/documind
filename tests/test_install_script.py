@@ -102,7 +102,7 @@ def _build_install_env(
 
     env = os.environ.copy()
     env["HOME"] = _shell_path(home_dir)
-    env["PATH"] = f"{_shell_path(fake_bin_dir)}:{env['PATH']}"
+    env["PATH"] = f"{fake_bin_dir}{os.pathsep}{env['PATH']}"
     return env, home_dir, curl_log
 
 
@@ -213,7 +213,7 @@ def test_install_script_supports_apple_silicon_from_rosetta_shell(tmp_path):
 def test_install_script_skips_path_hint_when_user_bin_is_already_on_path(tmp_path):
     env, home_dir, _ = _build_install_env(tmp_path)
     install_dir = home_dir / ".local" / "bin"
-    env["PATH"] = f"{env['PATH']}:{_shell_path(install_dir)}/"
+    env["PATH"] = f"{env['PATH']}{os.pathsep}{install_dir}"
 
     result = subprocess.run(
         ["sh", str(ROOT / "install.sh")],
