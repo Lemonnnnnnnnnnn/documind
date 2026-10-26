@@ -79,6 +79,14 @@ class DocumentParser:
                     blocks.extend(textbox_blocks)
                     pending_anchor = None
 
+                textbox_paragraph_blocks = self._parse_textbox_paragraph_blocks(
+                    element, codeblock_styles, package
+                )
+                if textbox_paragraph_blocks:
+                    flush_list()
+                    blocks.extend(textbox_paragraph_blocks)
+                    pending_anchor = None
+
                 if images and not paragraph.runs:
                     blocks.extend(images)
                 elif images:
@@ -422,6 +430,30 @@ class DocumentParser:
                 normalized = self._normalize_codeblock_lines(pending_lines)
                 if normalized:
                     blocks.append(CodeBlock(text=normalized))
+        return blocks
+
+    def _parse_textbox_paragraph_blocks(
+        self,
+        paragraph: ET.Element,
+        codeblock_styles: set[str],
+        package: DocxPackage,
+    ) -> list[object]:
+        """Parse text box (shape) paragraphs as regular blocks.
+
+        Word keeps text box content under ``w:drawing > ... > w:txbxContent``, so it
+        never reaches the body-level block iterator and the enclosing paragraph looks
+        empty. Code block styled text boxes are handled separately.
+        """
+        blocks: list[object] = []
+        for textbox_paragraph in paragraph.findall(".//w:txbxContent/w:p", NS):
+            if self._is_codeblock_paragraph(textbox_paragraph, codeblock_styles):
+                continue
+            parsed, _text = self._parse_paragraph(
+                textbox_paragraph, relationships=package.relationships
+            )
+            if parsed.runs:
+                blocks.append(parsed)
+            blocks.extend(self.image_parser.parse(textbox_paragraph, package))
         return blocks
 
     def _is_codeblock_paragraph(self, paragraph: ET.Element, codeblock_styles: set[str]) -> bool:

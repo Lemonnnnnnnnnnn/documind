@@ -711,3 +711,56 @@ def test_document_parser_preserves_nested_tables_inside_table_cells():
     assert nested_table.rows[1].cells[0].text == "/tacticPriceRate/addTemp"
     assert nested_table.rows[1].cells[1].text == "aliBigSettRate"
 
+
+def test_extracts_plain_paragraphs_from_textbox() -> None:
+    package = DocxPackage(
+        source_path=Path("textbox-paragraphs.docx"),
+        document_root=ET.fromstring(
+            """
+            <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+                        xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+                        xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+                        xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+              <w:body>
+                <w:p>
+                  <w:pPr><w:outlineLvl w:val="9" /></w:pPr>
+                  <w:r>
+                    <w:drawing>
+                      <wp:inline>
+                        <a:graphic>
+                          <a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+                            <wps:wsp>
+                              <wps:txbx>
+                                <w:txbxContent>
+                                  <w:p>
+                                    <w:pPr><w:pStyle w:val="boxpara" /></w:pPr>
+                                    <w:r><w:t>改造说明：改为按服务商类型分化</w:t></w:r>
+                                  </w:p>
+                                  <w:p>
+                                    <w:pPr><w:pStyle w:val="boxpara" /></w:pPr>
+                                    <w:r><w:t>功能类型：改造页面</w:t></w:r>
+                                  </w:p>
+                                </w:txbxContent>
+                              </wps:txbx>
+                            </wps:wsp>
+                          </a:graphicData>
+                        </a:graphic>
+                      </wp:inline>
+                    </w:drawing>
+                  </w:r>
+                </w:p>
+              </w:body>
+            </w:document>
+            """
+        ),
+        styles_root=None,
+        relationships={},
+        media_files={},
+    )
+
+    document = DocumentParser().parse(package)
+
+    assert document.blocks == [
+        Paragraph(runs=[TextRun(text="改造说明：改为按服务商类型分化", bold=False, italic=False, strike=False)]),
+        Paragraph(runs=[TextRun(text="功能类型：改造页面", bold=False, italic=False, strike=False)]),
+    ]
