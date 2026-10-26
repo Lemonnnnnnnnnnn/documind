@@ -49,6 +49,8 @@ class HTMLTableRenderer:
                 alt = escape(block.alt_text or "image", quote=True)
                 src = escape(self._resolve_asset_path(block.asset_path, chunk_path), quote=True)
                 parts.append(f'<img src="{src}" alt="{alt}" />')
+            elif isinstance(block, TableBlock):
+                parts.append(self.render(block, chunk_path=chunk_path))
         return "<br/>".join(parts)
 
     def _render_paragraph(self, paragraph: Paragraph, chunk_path: str | None = None) -> str:

@@ -160,6 +160,56 @@ def test_can_force_html_table_mode_for_simple_table():
     assert "<table>" in output
 
 
+def test_nested_tables_fall_back_to_html_when_markdown_table_mode_is_requested():
+    chunk = Chunk(
+        chunk_id="chunk-1",
+        title="Tables",
+        level=1,
+        source_path=Path("demo.docx"),
+        output_name="tables/index.md",
+        relative_dir="tables",
+        breadcrumbs=[],
+        blocks=[
+            TableBlock(
+                rows=[
+                    TableRow(
+                        cells=[
+                            TableCell(
+                                blocks=[
+                                    TableBlock(
+                                        rows=[
+                                            TableRow(
+                                                cells=[
+                                                    TableCell(text="接口路径"),
+                                                    TableCell(text="新增字段"),
+                                                ]
+                                            ),
+                                            TableRow(
+                                                cells=[
+                                                    TableCell(text="/tacticPriceRate/addTemp"),
+                                                    TableCell(text="aliBigSettRate"),
+                                                ]
+                                            ),
+                                        ],
+                                        complexity="simple",
+                                    )
+                                ]
+                            )
+                        ]
+                    )
+                ],
+                complexity="complex",
+            )
+        ],
+    )
+
+    output = MarkdownRenderer(table_mode="markdown").render_chunk(chunk)
+
+    assert "<table>" in output
+    assert "/tacticPriceRate/addTemp" in output
+    assert "|  |" not in output
+
+
 def test_renders_nested_list_blocks_with_inline_styles():
     chunk = Chunk(
         chunk_id="chunk-1",

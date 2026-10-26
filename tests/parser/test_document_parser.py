@@ -665,3 +665,49 @@ def test_extracts_code_block_from_textbox_paragraph():
     assert document.blocks == [
         CodeBlock(text="/**\n    private String twoElementCheckStatus;\n\n*/")
     ]
+
+
+def test_document_parser_preserves_nested_tables_inside_table_cells():
+    package = DocxPackage(
+        source_path=Path("nested-table.docx"),
+        document_root=ET.fromstring(
+            """
+            <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+              <w:body>
+                <w:tbl>
+                  <w:tr>
+                    <w:tc>
+                      <w:p><w:r><w:t>Outer cell</w:t></w:r></w:p>
+                      <w:tbl>
+                        <w:tr>
+                          <w:tc><w:p><w:r><w:t>接口路径</w:t></w:r></w:p></w:tc>
+                          <w:tc><w:p><w:r><w:t>新增字段</w:t></w:r></w:p></w:tc>
+                        </w:tr>
+                        <w:tr>
+                          <w:tc><w:p><w:r><w:t>/tacticPriceRate/addTemp</w:t></w:r></w:p></w:tc>
+                          <w:tc><w:p><w:r><w:t>aliBigSettRate</w:t></w:r></w:p></w:tc>
+                        </w:tr>
+                      </w:tbl>
+                    </w:tc>
+                  </w:tr>
+                </w:tbl>
+              </w:body>
+            </w:document>
+            """
+        ),
+        styles_root=None,
+        relationships={},
+        media_files={},
+    )
+
+    document = DocumentParser().parse(package)
+
+    outer_table = next(block for block in document.blocks if isinstance(block, TableBlock))
+    outer_cell = outer_table.rows[0].cells[0]
+    nested_table = next(block for block in outer_cell.blocks if isinstance(block, TableBlock))
+
+    assert outer_table.complexity == "complex"
+    assert outer_cell.text == "Outer cell"
+    assert nested_table.rows[1].cells[0].text == "/tacticPriceRate/addTemp"
+    assert nested_table.rows[1].cells[1].text == "aliBigSettRate"
+

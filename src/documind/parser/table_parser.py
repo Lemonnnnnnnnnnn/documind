@@ -31,8 +31,17 @@ class TableParser:
             parsed_cells: list[TableCell] = []
             column_index = 0
             for cell_el in row.findall("./w:tc", NS):
-                cell, vmerge_state, has_images, has_links = self._parse_cell(cell_el, package)
-                if cell.colspan > 1 or "\n" in cell.text or has_images or has_links:
+                cell, vmerge_state, has_images, has_links, has_nested_tables = self._parse_cell(
+                    cell_el,
+                    package,
+                )
+                if (
+                    cell.colspan > 1
+                    or "\n" in cell.text
+                    or has_images
+                    or has_links
+                    or has_nested_tables
+                ):
                     complexity = "complex"
 
                 if vmerge_state == "continue":
@@ -60,7 +69,7 @@ class TableParser:
         self,
         cell: ET.Element,
         package: DocxPackage,
-    ) -> tuple[TableCell, str | None, bool, bool]:
+    ) -> tuple[TableCell, str | None, bool, bool, bool]:
         tc_pr = cell.find("./w:tcPr", NS)
         colspan = 1
         vmerge_state: str | None = None
@@ -73,29 +82,35 @@ class TableParser:
                 vmerge_state = vmerge.attrib.get(f"{{{W_NS}}}val", "continue")
 
         texts: list[str] = []
-        blocks: list[Paragraph | ImageBlock] = []
+        blocks: list[Paragraph | ImageBlock | TableBlock] = []
         has_images = False
         has_links = False
-        for paragraph in cell.findall("./w:p", NS):
-            parsed_paragraph, paragraph_text = self._parse_paragraph(paragraph, package)
-            if paragraph_text:
-                texts.append(paragraph_text)
-            if parsed_paragraph.runs:
-                blocks.append(parsed_paragraph)
-                has_links = has_links or any(
-                    isinstance(run, LinkRun) for run in parsed_paragraph.runs
-                )
+        has_nested_tables = False
+        for child in cell:
+            if child.tag == f"{{{W_NS}}}p":
+                parsed_paragraph, paragraph_text = self._parse_paragraph(child, package)
+                if paragraph_text:
+                    texts.append(paragraph_text)
+                if parsed_paragraph.runs:
+                    blocks.append(parsed_paragraph)
+                    has_links = has_links or any(
+                        isinstance(run, LinkRun) for run in parsed_paragraph.runs
+                    )
 
-            image_blocks = self.image_parser.parse(paragraph, package)
-            if image_blocks:
-                has_images = True
-                blocks.extend(image_blocks)
+                image_blocks = self.image_parser.parse(child, package)
+                if image_blocks:
+                    has_images = True
+                    blocks.extend(image_blocks)
+            elif child.tag == f"{{{W_NS}}}tbl":
+                blocks.append(self.parse(child, package))
+                has_nested_tables = True
 
         return (
             TableCell(text="\n".join(texts), blocks=blocks, colspan=colspan),
             vmerge_state,
             has_images,
             has_links,
+            has_nested_tables,
         )
 
     def _parse_paragraph(self, paragraph: ET.Element, package: DocxPackage) -> tuple[Paragraph, str]:

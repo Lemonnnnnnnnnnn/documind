@@ -56,7 +56,7 @@ class MarkdownRenderer:
             asset_path = self._resolve_asset_path(block.asset_path, chunk_path)
             return f"![{alt_text}]({asset_path})"
         if isinstance(block, TableBlock):
-            if self.table_mode == "html":
+            if self.table_mode == "html" or self._has_nested_table(block):
                 rendered = self.html_table_renderer.render(block, chunk_path=chunk_path)
                 return self._prepend_anchor(rendered, block.anchor)
             if self.table_mode == "auto" and block.complexity != "simple":
@@ -156,6 +156,13 @@ class MarkdownRenderer:
 
     def _cell_text(self, cell: object) -> str:
         return getattr(cell, "text", "")
+
+    def _has_nested_table(self, table: TableBlock) -> bool:
+        for row in table.rows:
+            for cell in row.cells:
+                if any(isinstance(block, TableBlock) for block in cell.blocks):
+                    return True
+        return False
 
     def _resolve_asset_path(self, asset_path: str, chunk_path: str) -> str:
         if not asset_path.startswith("./"):

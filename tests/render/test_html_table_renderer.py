@@ -48,3 +48,39 @@ def test_renders_links_inside_table_cells_as_anchors():
     output = HTMLTableRenderer().render(table)
 
     assert '<a href="https://example.com/spec.pdf">Download spec</a>' in output
+
+
+def test_renders_nested_tables_inside_table_cells():
+    table = TableBlock(
+        rows=[
+            TableRow(
+                cells=[
+                    TableCell(
+                        text="Outer",
+                        blocks=[
+                            Paragraph(runs=[]),
+                            TableBlock(
+                                rows=[
+                                    TableRow(cells=[TableCell(text="接口路径"), TableCell(text="新增字段")]),
+                                    TableRow(
+                                        cells=[
+                                            TableCell(text="/tacticTradeRate/addTemp"),
+                                            TableCell(text="aliBigMinRate"),
+                                        ]
+                                    ),
+                                ],
+                                complexity="simple",
+                            ),
+                        ],
+                    )
+                ]
+            )
+        ],
+        complexity="complex",
+    )
+
+    output = HTMLTableRenderer().render(table)
+
+    assert output.count("<table>") == 2
+    assert "<td>/tacticTradeRate/addTemp</td>" in output
+    assert "<td>aliBigMinRate</td>" in output
